@@ -46,6 +46,7 @@ main{max-width:1100px;margin:auto;padding:30px 20px 60px}
 input,select,textarea{width:100%;padding:11px 12px;border:1px solid #dedbcf;background:#fffef9;border-radius:9px;color:var(--text);font-family:inherit;font-size:13px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--olive)}
 select{cursor:pointer}
+button{font-family:inherit}
 .primary-btn{border:none;background:var(--olive);color:white;padding:12px 17px;border-radius:9px;font-weight:bold;font-size:12px;cursor:pointer}
 .primary-btn:hover{background:var(--dark)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:17px}
@@ -98,8 +99,11 @@ select{cursor:pointer}
 .note-area{min-height:160px;resize:vertical;line-height:1.6}
 .quote{margin-top:35px;padding:25px;text-align:center;color:var(--dark);background:var(--sage);border-radius:15px;font-family:'Playfair Display',serif;font-size:19px;font-style:italic}
 footer{text-align:center;color:var(--muted);font-size:10px;letter-spacing:2px;padding:25px}
-.timer{font-family:'Playfair Display',serif;font-size:55px;color:var(--dark);text-align:center;margin:15px 0}
+.timer{font-family:'Playfair Display',serif;font-size:55px;color:var(--dark);text-align:center;margin:15px 0;font-variant-numeric:tabular-nums}
 .timer-buttons{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+.timer-mode{border:1px solid #e4dfd1;background:var(--cream);color:var(--dark);padding:9px 14px;border-radius:20px;font-size:11px;cursor:pointer}
+.timer-mode.active{background:var(--dark);color:white}
+.timer-buttons button{min-width:75px}
 @media(max-width:750px){
 .homework-form{grid-template-columns:1fr 1fr}
 .homework-form .field:first-child{grid-column:span 2}
@@ -176,8 +180,6 @@ main{padding:20px 13px 45px}
         <label for="taskTitle">Assignment title</label>
         <input id="taskTitle" type="text" placeholder="e.g. Math activity 3" required>
       </div>
-
-      <!-- SUBJECT OPTIONS ARE BUILT DIRECTLY INTO HTML -->
       <div class="field">
         <label for="taskSubject">Subject</label>
         <select id="taskSubject" required>
@@ -194,12 +196,10 @@ main{padding:20px 13px 45px}
           <option value="Science">Science</option>
         </select>
       </div>
-
       <div class="field">
         <label for="taskDeadline">Deadline</label>
         <input id="taskDeadline" type="date" required>
       </div>
-
       <div class="field">
         <label for="taskPriority">Priority</label>
         <select id="taskPriority">
@@ -208,7 +208,6 @@ main{padding:20px 13px 45px}
           <option value="High">High</option>
         </select>
       </div>
-
       <button class="primary-btn" type="submit">+ Add task</button>
     </form>
   </div>
@@ -219,10 +218,10 @@ main{padding:20px 13px 45px}
       <input id="searchTasks" type="search" placeholder="Search assignments..." style="max-width:210px;">
     </div>
     <div class="filters">
-      <button class="filter-btn active" data-filter="All">All</button>
-      <button class="filter-btn" data-filter="Pending">Pending</button>
-      <button class="filter-btn" data-filter="Completed">Completed</button>
-      <button class="filter-btn" data-filter="Overdue">Overdue</button>
+      <button type="button" class="filter-btn active" data-filter="All">All</button>
+      <button type="button" class="filter-btn" data-filter="Pending">Pending</button>
+      <button type="button" class="filter-btn" data-filter="Completed">Completed</button>
+      <button type="button" class="filter-btn" data-filter="Overdue">Overdue</button>
     </div>
     <div class="task-list" id="homeworkList"></div>
   </div>
@@ -274,15 +273,15 @@ main{padding:20px 13px 45px}
   </div>
   <div class="panel" style="text-align:center;">
     <div class="filters" style="justify-content:center;">
-      <button class="filter-btn active" onclick="setTimer(25,this)">Focus · 25 min</button>
-      <button class="filter-btn" onclick="setTimer(5,this)">Short break · 5 min</button>
-      <button class="filter-btn" onclick="setTimer(15,this)">Long break · 15 min</button>
+      <button type="button" class="timer-mode active" data-minutes="25">Focus · 25 min</button>
+      <button type="button" class="timer-mode" data-minutes="5">Short break · 5 min</button>
+      <button type="button" class="timer-mode" data-minutes="15">Long break · 15 min</button>
     </div>
     <div class="timer" id="timerDisplay">25:00</div>
     <div class="timer-buttons">
-      <button class="primary-btn" onclick="startTimer()">Start</button>
-      <button class="small-btn" onclick="pauseTimer()">Pause</button>
-      <button class="small-btn" onclick="resetTimer()">Reset</button>
+      <button type="button" class="primary-btn" id="startTimerBtn">Start</button>
+      <button type="button" class="small-btn" id="pauseTimerBtn">Pause</button>
+      <button type="button" class="small-btn" id="resetTimerBtn">Reset</button>
     </div>
     <p id="timerMessage" style="font-size:12px;color:var(--muted);">Ready when you are. 🌿</p>
   </div>
@@ -306,7 +305,6 @@ main{padding:20px 13px 45px}
 
 <footer>MADE WITH CARE ✿ STUDY SPACE</footer>
 
-<!-- SUBJECT POP-UP -->
 <div class="modal" id="subjectModal">
   <div class="modal-content">
     <div class="modal-top">
@@ -315,20 +313,20 @@ main{padding:20px 13px 45px}
         <h2 id="modalSubjectTitle">Subject</h2>
         <p style="font-size:12px;color:var(--muted);margin:5px 0 0;">Everything for this subject, in one place.</p>
       </div>
-      <button class="close-btn" onclick="closeModal()">×</button>
+      <button type="button" class="close-btn" id="closeModalBtn">×</button>
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="subjectTasks">Tasks</button>
-      <button class="tab-btn" data-tab="subjectDeadlines">Deadlines</button>
-      <button class="tab-btn" data-tab="subjectTopics">Review Topics</button>
-      <button class="tab-btn" data-tab="subjectNotes">Notes</button>
+      <button type="button" class="tab-btn active" data-tab="subjectTasks">Tasks</button>
+      <button type="button" class="tab-btn" data-tab="subjectDeadlines">Deadlines</button>
+      <button type="button" class="tab-btn" data-tab="subjectTopics">Review Topics</button>
+      <button type="button" class="tab-btn" data-tab="subjectNotes">Notes</button>
     </div>
 
     <div class="tab-panel active" id="subjectTasks">
       <p style="font-size:12px;color:var(--muted);">These assignments are shared with your main Homework Tracker.</p>
       <div id="subjectTaskList" class="task-list"></div>
-      <button class="primary-btn" style="margin-top:13px;" onclick="goToHomework()">+ Add assignment</button>
+      <button type="button" class="primary-btn" style="margin-top:13px;" id="addSubjectTaskBtn">+ Add assignment</button>
     </div>
 
     <div class="tab-panel" id="subjectDeadlines">
@@ -376,20 +374,21 @@ subjects.forEach(subject=>{
 function saveHomework(){
   localStorage.setItem(STORAGE_KEY,JSON.stringify(homework));
 }
+
 function saveSubjects(){
   localStorage.setItem(SUBJECT_KEY,JSON.stringify(subjectData));
 }
+
 function escapeHTML(value){
   return String(value).replace(/[&<>"']/g,char=>({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   })[char]);
 }
+
 function isOverdue(task){
   return !task.completed && task.deadline &&
     task.deadline < new Date().toLocaleDateString("en-CA");
 }
-
-/* SUBJECT DROPDOWN - OPTIONS ALREADY EXIST IN HTML */
 
 const subjectSelect=document.getElementById("taskSubject");
 
@@ -416,14 +415,4 @@ document.getElementById("homeworkForm").addEventListener("submit",function(event
   saveHomework();
   this.reset();
   document.getElementById("taskPriority").value="Medium";
-  subjectSelect.value="";
-  renderEverything();
-});
-
-/* FILTERS */
-
-document.querySelectorAll(".filter-btn[data-filter]").forEach(button=>{
-  button.addEventListener("click",()=>{
-    document.querySelectorAll(".filter-btn[data-filter]").forEach(btn=>btn.classList.remove("active"));
-    button.classList.add("active");
-    currentFilter=b
+  s
